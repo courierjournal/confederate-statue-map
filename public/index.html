@@ -1,0 +1,193 @@
+<!Doctype HTML>
+<html>
+
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <meta name="title" content="">
+    <meta name="description" content="">
+    <meta name="author" content="Jesse Hazel">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <script src="//code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="https://aas.gannettdigital.com/PLOU-AAS-INTERACTIVES/jab.min.js"></script>
+
+    <script src='https://api.mapbox.com/mapbox.js/v3.1.1/mapbox.js'></script>
+    <link href='https://api.mapbox.com/mapbox.js/v3.1.1/mapbox.css' rel='stylesheet' />
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+
+        header>iframe {
+            border: none;
+            width: 100%;
+            height: 40px;
+            overflow: hidden;
+        }
+
+        #legend {
+            background-color: #1f1f1f;
+            display: flex;
+            color: #fff;
+            justify-content: space-around;
+            padding: 2rem;
+            text-align: center;
+            font-weight:100;
+            letter-spacing:1px;
+        }
+
+        .legend-item {
+            width: 62px;
+            height: 62px;
+            display: inline-block;
+            text-align: center;
+            line-height: 62px;
+            border-radius: 50%;
+            background: #888;
+            font-size: 32px;
+            font-weight: bold;
+            margin-top: 10px;
+            -webkit-font-smoothing:antialiased;
+            text-shadow: 0 0 3px #000;
+        }
+
+        .legend-item.grey {
+            background-color: #888;
+        }
+
+        .legend-item.blue {
+            background-color: #3388ff
+        }
+
+        .legend-item.orange {
+            background-color: #f80
+        }
+
+        .legend-item.red-dash {
+            background-color: transparent;
+            border: 3px dashed #d41515;
+            width:59px;
+            height:59px;
+            line-height:59px;
+        }
+
+        #map {
+            flex: 1;
+        }
+
+        footer{
+            padding:1rem;
+            background-color:#0f0f0f;
+            color:#eee;
+            display:flex;
+            flex-direction:row;
+            justify-content:space-between;
+        }
+    </style>
+
+</head>
+
+<body data-content-byline="Jesse Hazel" data-content-cst="news" data-content-ssts="news">
+    <header>
+        <iframe src="http://www.courier-journal.com/services/cobrand/header/"></iframe>
+    </header>
+    <div id="map"></div>
+    <div id="legend">
+        <div>Confederate
+            <br>
+            <span class="legend-item grey" id="confederate-count">20</span>
+        </div>
+        <div>Union
+            <br>
+            <span class="legend-item blue" id="union-count">20</span>
+        </div>
+        <div>Both/Other
+            <br>
+            <span class="legend-item orange" id="other-count">20</span>
+        </div>
+        <div>Removed
+            <br>
+            <span class="legend-item red-dash" id="removed-count">20</span>
+        </div>
+    </div>
+    <footer>
+        <div>Source: National Park Service</div>
+        <div>Map by: Jesse Hazel</div>
+        <div>© 2017 www.courier-journal.com. All rights reserved.</div>
+    </footer>
+
+    <script>
+        L.mapbox.accessToken = 'pk.eyJ1IjoibG91aXN2aWxsZSIsImEiOiJsbTlCcXVVIn0.SjLABTBMkNXM2Wg0eOkhUw';
+        var map = L.mapbox.map('map', 'mapbox.light')
+            .setView([40, -74.50], 9);
+
+        //var featureLayer = new L.MarkerClusterGroup({ maxClusterRadius: 10, spiderfyOnMaxZoom: true });
+        var featureLayer = new L.FeatureGroup();
+        var legendTotals = {
+            Confederate: 0,
+            Union: 0,
+            Other: 0,
+            Removed: 0
+        }
+
+        $.getJSON('data.json', function (data) {
+            data.forEach(function (n) {
+                var popup = `
+                    <b>Name:</b> ${n.name}<br>
+                    <b>County:</b> ${n.county}</br>
+                    <b>Type:</b> ${n.type}</br>
+                    <b>Year Built:</b> ${n.year_built}<br>
+                    <b>More info:</b> <a href="${n.notes}" target="_blank">National Park Service</a>
+                    `;
+                var color;
+                var borderColor;
+                var dash = "1,1";
+                if (n.type == "Confederate") {
+                    color = "#888";
+                }
+                else if (n.type == "Union") {
+                    color = "#3388ff";
+                }
+                else if (n.type == "Other" || n.type == "Both") {
+                    color = "#f80";
+                }
+                borderColor = color;
+                legendTotals[n.type]++;
+                if (n.active === "No") {
+                    legendTotals.Removed++;
+                    dash = "5,5";
+                    borderColor = "#d41515";
+                    legendTotals[n.type]--;
+                }
+
+
+                L.circleMarker([n.lat, n.lng], { radius: 8, color: borderColor, fillColor: color, fillOpacity: .6, opacity: .8, dashArray: dash })
+                    .bindPopup(popup)
+                    .addTo(featureLayer);
+            })
+
+            featureLayer.addTo(map);
+            map.fitBounds(featureLayer.getBounds());
+
+
+            for (var key in legendTotals) {
+                $('#' + key.toLowerCase() + '-count').text(legendTotals[key])
+            }
+
+        })
+
+
+
+    </script>
+</body>
+
+</html>
