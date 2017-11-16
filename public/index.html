@@ -21,8 +21,13 @@
         body {
             margin: 0;
             padding: 0;
+            display: -webkit-box;
+            display: -ms-flexbox;
             display: flex;
-            flex-direction: column;
+            -webkit-box-orient: vertical;
+            -webkit-box-direction: normal;
+                -ms-flex-direction: column;
+                    flex-direction: column;
             min-height: 100vh;
             font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
         }
@@ -36,13 +41,16 @@
 
         #legend {
             background-color: #1f1f1f;
+            display: -webkit-box;
+            display: -ms-flexbox;
             display: flex;
             color: #fff;
-            justify-content: space-around;
+            -ms-flex-pack: distribute;
+                justify-content: space-around;
             padding: 2rem;
             text-align: center;
-            font-weight:100;
-            letter-spacing:1px;
+            font-weight: 100;
+            letter-spacing: 1px;
         }
 
         .legend-item {
@@ -56,7 +64,7 @@
             font-size: 32px;
             font-weight: bold;
             margin-top: 10px;
-            -webkit-font-smoothing:antialiased;
+            -webkit-font-smoothing: antialiased;
             text-shadow: 0 0 3px #000;
         }
 
@@ -75,43 +83,66 @@
         .legend-item.red-dash {
             background-color: transparent;
             border: 3px dashed #d41515;
-            width:59px;
-            height:59px;
-            line-height:59px;
+            width: 59px;
+            height: 59px;
+            line-height: 59px;
         }
 
         #map {
-            flex: 1;
+            -webkit-box-flex: 1;
+                -ms-flex: 1;
+                    flex: 1;
         }
 
-        footer{
-            padding:1rem;
-            background-color:#0f0f0f;
-            color:#eee;
-            display:flex;
-            flex-direction:row;
-            justify-content:space-between;
-            -webkit-font-smoothing:antialiased;
-            font-size:14px;
+        footer {
+            padding: 1rem;
+            background-color: #0f0f0f;
+            color: #eee;
+            display: -webkit-box;
+            display: -ms-flexbox;
+            display: flex;
+            -webkit-box-orient: horizontal;
+            -webkit-box-direction: normal;
+                -ms-flex-direction: row;
+                    flex-direction: row;
+            -webkit-box-pack: justify;
+                -ms-flex-pack: justify;
+                    justify-content: space-between;
+            -webkit-font-smoothing: antialiased;
+            font-size: 14px;
         }
 
         @media screen and (max-width: 620px) {
-            footer{
-                font-size:10px;
-                text-align:center;
-                padding:0px;
+            footer {
+                font-size: 10px;
+                text-align: center;
+                padding: 0px;
             }
 
-            footer> div{
-                padding:8px;
+            footer>div {
+                padding: 8px;
             }
 
-            #legend{
-                padding:0px;
+            #legend {
+                padding: 0px;
             }
 
-            .legend-item{
-               
+            #legend>div {
+                padding: 10px;
+            }
+
+            .legend-item {
+                width: 42px;
+                height: 42px;
+                font-size: 22px;
+                line-height: 42px;
+
+            }
+
+            .legend-item.red-dash {
+                width: 39px;
+                height: 39px;
+                line-height: 39px;
             }
         }
     </style>
@@ -147,9 +178,10 @@
     </footer>
 
     <script>
+       'use strict';
+
         L.mapbox.accessToken = 'pk.eyJ1IjoibG91aXN2aWxsZSIsImEiOiJsbTlCcXVVIn0.SjLABTBMkNXM2Wg0eOkhUw';
-        var map = L.mapbox.map('map', 'mapbox.light')
-            .setView([40, -74.50], 9);
+        var map = L.mapbox.map('map', 'mapbox.light').setView([40, -74.50], 9);
 
         //var featureLayer = new L.MarkerClusterGroup({ maxClusterRadius: 10, spiderfyOnMaxZoom: true });
         var featureLayer = new L.FeatureGroup();
@@ -158,27 +190,19 @@
             Union: 0,
             Other: 0,
             Removed: 0
-        }
+        };
 
         $.getJSON('data.json', function (data) {
             data.forEach(function (n) {
-                var popup = `
-                    <b>Name:</b> ${n.name}<br>
-                    <b>County:</b> ${n.county}</br>
-                    <b>Type:</b> ${n.type}</br>
-                    <b>Year Built:</b> ${n.year_built}<br>
-                    <b>More info:</b> <a href="${n.notes}" target="_blank">National Park Service</a>
-                    `;
+                var popup = '\n                    <b>Name:</b> ' + n.name + '<br>\n                    <b>County:</b> ' + n.county + '</br>\n                    <b>Type:</b> ' + n.type + '</br>\n                    <b>Year Built:</b> ' + n.year_built + '<br>\n                    <b>More info:</b> <a href="' + n.notes + '" target="_blank">National Park Service</a>\n                    ';
                 var color;
                 var borderColor;
                 var dash = "1,1";
                 if (n.type == "Confederate") {
                     color = "#888";
-                }
-                else if (n.type == "Union") {
+                } else if (n.type == "Union") {
                     color = "#3388ff";
-                }
-                else if (n.type == "Other" || n.type == "Both") {
+                } else if (n.type == "Other" || n.type == "Both") {
                     color = "#f80";
                 }
                 borderColor = color;
@@ -190,22 +214,16 @@
                     legendTotals[n.type]--;
                 }
 
-
-                L.circleMarker([n.lat, n.lng], { radius: 8, color: borderColor, fillColor: color, fillOpacity: .6, opacity: .8, dashArray: dash })
-                    .bindPopup(popup)
-                    .addTo(featureLayer);
-            })
+                L.circleMarker([n.lat, n.lng], { radius: 8, color: borderColor, fillColor: color, fillOpacity: .6, opacity: .8, dashArray: dash }).bindPopup(popup).addTo(featureLayer);
+            });
 
             featureLayer.addTo(map);
             map.fitBounds(featureLayer.getBounds());
 
-
             for (var key in legendTotals) {
-                $('#' + key.toLowerCase() + '-count').text(legendTotals[key])
+                $('#' + key.toLowerCase() + '-count').text(legendTotals[key]);
             }
-
-        })
-
+        });
 
 
     </script>
