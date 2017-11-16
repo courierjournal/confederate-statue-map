@@ -91,9 +91,30 @@
             display:flex;
             flex-direction:row;
             justify-content:space-between;
+            -webkit-font-smoothing:antialiased;
+            font-size:14px;
+        }
+
+        @media screen and (max-width: 620px) {
+            footer{
+                font-size:10px;
+                text-align:center;
+                padding:0px;
+            }
+
+            footer> div{
+                padding:8px;
+            }
+
+            #legend{
+                padding:0px;
+            }
+
+            .legend-item{
+               
+            }
         }
     </style>
-
 </head>
 
 <body data-content-byline="Jesse Hazel" data-content-cst="news" data-content-ssts="news">
