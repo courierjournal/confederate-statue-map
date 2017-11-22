@@ -130,6 +130,18 @@
             font-size: 14px;
         }
 
+        .legend-item-container{
+            cursor:pointer;
+        }
+
+        .legend-item-container.inactive{
+            opacity:.3;
+        }
+
+        .legend-item-container.inactive > .legend-item{
+            background-color:#aaa;
+        }
+
         @media screen and (max-width: 620px) {
             footer {
                 font-size: 10px;
@@ -172,21 +184,21 @@
     </header>
     <div id="map"></div>
     <div id="legend">
-        <div>Confederate
+        <div class="legend-item-container" data-id="Confederate">Confederate
             <br>
-            <span class="legend-item grey" id="confederate-count">20</span>
+            <span class="legend-item grey" id="confederate-count"></span>
         </div>
-        <div>Union
+        <div class="legend-item-container" data-id="Union">Union
             <br>
-            <span class="legend-item blue" id="union-count">20</span>
+            <span class="legend-item blue" id="union-count"></span>
         </div>
-        <div>Both/Other
+        <div class="legend-item-container" data-id="Other">Both/Other
             <br>
-            <span class="legend-item orange" id="other-count">20</span>
+            <span class="legend-item orange" id="other-count"></span>
         </div>
-        <div>Removed
+        <div data-id="Removed">Removed
             <br>
-            <span class="legend-item red-dash" id="removed-count">20</span>
+            <span class="legend-item red-dash" id="removed-count"></span>
         </div>
     </div>
     <div class="footnotes">According to civalwar.org, about 100,000 Kentuckians served in the Union Army and between 25,000 and 40,000 served for the
@@ -204,7 +216,6 @@
         L.mapbox.accessToken = 'pk.eyJ1IjoibG91aXN2aWxsZSIsImEiOiJsbTlCcXVVIn0.SjLABTBMkNXM2Wg0eOkhUw';
         var map = L.mapbox.map('map', 'mapbox.light').setView([40, -74.50], 9);
 
-        //var featureLayer = new L.MarkerClusterGroup({ maxClusterRadius: 10, spiderfyOnMaxZoom: true });
         var featureLayer = new L.FeatureGroup();
         var legendTotals = {
             Confederate: 0,
@@ -213,9 +224,16 @@
             Removed: 0
         };
 
+        var legendToggle = {
+            Confederate: true,
+            Union: true,
+            Other: true,
+            Removed: true
+        }
+
         $.getJSON('data.json', function (data) {
             data.forEach(function (n) {
-                var popup = '\n                    <b>Name:</b> ' + n.name + '<br>\n                    <b>County:</b> ' + n.county + '</br>\n                    <b>Type:</b> ' + n.type + '</br>\n                    <b>Year Built:</b> ' + n.year_built + '<br>\n                    <b>More info:</b> <a href="' + n.notes + '" target="_blank">National Park Service</a>\n                    ';
+                var popup = '<b>Name:</b> ' + n.name + '<br>\n                    <b>County:</b> ' + n.county + '</br>\n                    <b>Type:</b> ' + n.type + '</br>\n                    <b>Year Built:</b> ' + n.year_built + '<br>\n                    <b>More info:</b> <a href="' + n.notes + '" target="_blank">National Park Service</a>\n                    ';
                 var color;
                 var borderColor;
                 var dash = "1,1";
@@ -235,7 +253,7 @@
                     legendTotals[n.type]--;
                 }
 
-                L.circleMarker([n.lat, n.lng], { radius: 8, color: borderColor, fillColor: color, fillOpacity: .6, opacity: .8, dashArray: dash }).bindPopup(popup).addTo(featureLayer);
+                L.circleMarker([n.lat, n.lng], { radius: 8, color: borderColor, fillColor: color, fillOpacity: .6, opacity: .8, dashArray: dash, className: n.type }).bindPopup(popup).addTo(featureLayer);
             });
 
             featureLayer.addTo(map);
@@ -244,6 +262,12 @@
             for (var key in legendTotals) {
                 $('#' + key.toLowerCase() + '-count').text(legendTotals[key]);
             }
+        });
+
+        $('.legend-item-container').click(function(){
+            var category = $(this).attr('data-id');
+            $('.'+category).toggle();
+            $(this).toggleClass('inactive');
         });
 
 
